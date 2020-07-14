@@ -245,6 +245,33 @@ elif [[ "$CI_TARGET" == "bazel.compile_time_options" ]]; then
   bazel test ${BAZEL_BUILD_OPTIONS} ${COMPILE_TIME_OPTIONS} -c opt @envoy//test/common/common:assert_test @envoy//test/server:server_test
 
   exit 0
+elif [[ "$CI_TARGET" == "bazel.fips" ]]; then
+  # Right now, none of the available compile-time options conflict with each other. If this
+  # changes, this build type may need to be broken up.
+  # TODO(mpwarres): remove quiche=enabled once QUICHE is built by default.
+  COMPILE_TIME_OPTIONS="\
+    --define boringssl=fips \
+  "
+  ENVOY_STDLIB="${ENVOY_STDLIB:-libstdc++}"
+  setup_clang_toolchain
+  # This doesn't go into CI but is available for developer convenience.
+  echo "bazel with different compiletime options build with tests..."
+
+  if [[ "${TEST_TARGETS}" == "//test/..." ]]; then
+    cd "${ENVOY_FILTER_EXAMPLE_SRCDIR}"
+    TEST_TARGETS="@envoy//test/..."
+  fi
+  # Building all the dependencies from scratch to link them against libc++.
+  echo "Building..."
+  bazel build ${BAZEL_BUILD_OPTIONS} ${COMPILE_TIME_OPTIONS} -c dbg @envoy//source/exe:envoy-static --build_tag_filters=-nofips
+  echo "Building and testing ${TEST_TARGETS}"
+  bazel test ${BAZEL_BUILD_OPTIONS} ${COMPILE_TIME_OPTIONS} -c dbg ${TEST_TARGETS} --test_tag_filters=-nofips --build_tests_only
+
+  # "--define log_debug_assert_in_release=enabled" must be tested with a release build, so run only
+  # these tests under "-c opt" to save time in CI.
+  bazel test ${BAZEL_BUILD_OPTIONS} ${COMPILE_TIME_OPTIONS} -c opt @envoy//test/common/common:assert_test @envoy//test/server:server_test
+
+  exit 0  
 elif [[ "$CI_TARGET" == "bazel.api" ]]; then
   setup_clang_toolchain
   echo "Validating API structure..."

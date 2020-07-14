@@ -6,7 +6,7 @@ executors:
     docker:
       # NOTE: Update this from https://github.com/envoyproxy/envoy-build-tools/blob/master/toolchains/rbe_toolchains_config.bzl#L8
       - image: envoyproxy/envoy-build-ubuntu:f21773ab398a879f976936f72c78c9dd3718ca1e
-    resource_class: small
+    resource_class: large
     working_directory: /source
 
 jobs:
@@ -23,7 +23,19 @@ jobs:
        - store_artifacts:
            path: /build/envoy/generated
            destination: /
-
+   envoy_fips:
+     executor: ubuntu-build
+     steps:
+       - run: rm -rf /home/circleci/project/.git # CircleCI git caching is likely broken
+       - checkout
+       - run: ci/do_circle_ci.sh bazel.compile_time_options
+       - add_ssh_keys:
+           fingerprints:
+             - "SHA256:1MNg4FGsDjkx9qGESJuSRqm4kvwYITfq/KIDK/z0X5A"
+       - run: ci/api_mirror.sh
+       - store_artifacts:
+           path: /build/envoy/generated
+           destination: /
    go_control_plane_mirror:
      executor: ubuntu-build
      steps:
@@ -62,10 +74,4 @@ workflows:
   version: 2
   all:
     jobs:
-      - api
-      - go_control_plane_mirror
-      - filter_example_mirror
-      - docs:
-          filters:
-            tags:
-              only: /^v.*/
+      - envoy_fips
