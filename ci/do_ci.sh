@@ -260,7 +260,9 @@ elif [[ "$CI_TARGET" == "bazel.fips" ]]; then
   fi
   # Building all the dependencies from scratch to link them against libc++.
   echo "Building..."
-  bazel build ${BAZEL_BUILD_OPTIONS} ${COMPILE_TIME_OPTIONS} -c dbg @envoy//source/exe:envoy-static --build_tag_filters=-nofips
+  bazel build ${BAZEL_BUILD_OPTIONS} ${COMPILE_TIME_OPTIONS} -c opt @envoy//source/exe:envoy-static --build_tag_filters=-nofips
+  
+  bazel_binary_build release
   #echo "Building and testing ${TEST_TARGETS}"
   #bazel test ${BAZEL_BUILD_OPTIONS} ${COMPILE_TIME_OPTIONS} -c dbg ${TEST_TARGETS} --test_tag_filters=-nofips --build_tests_only
 
