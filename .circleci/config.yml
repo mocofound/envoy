@@ -17,10 +17,6 @@ jobs:
        - setup_remote_docker
        - checkout
        - run: ci/do_circle_ci.sh bazel.fips
-       - add_ssh_keys:
-           fingerprints:
-             - "SHA256:1MNg4FGsDjkx9qGESJuSRqm4kvwYITfq/KIDK/z0X5A"
-       - run: ci/api_mirror.sh
        - store_artifacts:
            path: /build/envoy/generated
            destination: /
