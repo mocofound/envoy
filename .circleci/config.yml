@@ -6,7 +6,7 @@ executors:
     docker:
       # NOTE: Update this from https://github.com/envoyproxy/envoy-build-tools/blob/master/toolchains/rbe_toolchains_config.bzl#L8
       - image: envoyproxy/envoy-build-ubuntu:f21773ab398a879f976936f72c78c9dd3718ca1e
-    resource_class: large
+    resource_class: xlarge
     working_directory: /source
 
 jobs:
