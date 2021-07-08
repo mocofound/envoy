@@ -20,6 +20,20 @@ jobs:
        - store_artifacts:
            path: /build/envoy/generated
            destination: /
+           
+   envoy_fips:
+     executor: ubuntu-build
+     steps:
+       - run: rm -rf /home/circleci/project/.git # CircleCI git caching is likely broken
+       - checkout
+       - run: ci/do_circle_ci.sh bazel.compile_time_options
+       - add_ssh_keys:
+           fingerprints:
+             - "SHA256:1MNg4FGsDjkx9qGESJuSRqm4kvwYITfq/KIDK/z0X5A"
+       - run: ci/api_mirror.sh
+       - store_artifacts:
+           path: /build/envoy/generated
+           destination: /
 
 workflows:
   version: 2
